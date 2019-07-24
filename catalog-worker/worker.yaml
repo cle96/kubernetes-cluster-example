@@ -1,0 +1,30 @@
+---
+kind: ReplicaSet
+apiVersion: apps/v1
+metadata:
+  name: catalog-worker
+  namespace: e-stack
+  labels:
+    app: catalog-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-worker
+  template:
+    metadata:
+      labels:
+        app: catalog-worker
+    spec:
+      # nodeSelector:
+        # type: linux-node
+      containers:
+        - image: "lcristian/elixir-message-sender"
+          name: catalog-worker
+          env:
+            - name: username
+              value: guest
+            - name: password
+              value: guest
+            - name: host
+              value: rabbitmq-service.e-stack

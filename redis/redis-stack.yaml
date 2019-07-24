@@ -1,0 +1,68 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: redis-persistent
+  namespace: e-stack
+  labels:
+    app: redis-persistent
+spec:
+  serviceName: "redis-persient-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-persistent
+  template:
+    metadata:
+      labels:
+        app: redis-persistent
+    spec:
+      # nodeSelector:
+        # type: linux-node
+      containers:
+        - image: "redis"
+          name: redis-persistent
+          ports:
+            - containerPort: 6379
+              name: redis-per  # max 15chars
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
+---
+kind: ReplicaSet
+apiVersion: apps/v1
+metadata:
+  name: redis-transient
+  namespace: e-stack
+  labels:
+    app: redis-transient
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-transient
+  template:
+    metadata:
+      labels:
+        app: redis-transient
+    spec:
+      # nodeSelector:
+        # type: linux-node
+      containers:
+        - image: "redis"
+          name: redis-transient
+          ports:
+            - containerPort: 6379
+              name: redis-transient
+          resources:
+            limits:
+              cpu: "1"
+            requests:
+              cpu: 500m

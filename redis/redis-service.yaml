@@ -1,0 +1,30 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-persistent-service
+  namespace: e-stack
+  labels:
+    app: redis-persistent
+spec:
+  ports:
+    - port: 6379
+      name: redis-per  # max 15chars
+      protocol: TCP
+      targetPort: 6380
+  selector:
+    app: redis-persistent
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-transient-service
+  namespace: e-stack
+  labels:
+    app: redis-transient
+spec:
+  ports:
+    - port: 6379
+      name: redis-transient
+      protocol: TCP
+  selector:
+    app: redis-transient

@@ -1,0 +1,79 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: rabbitmq
+  namespace: e-stack
+  labels:
+    app: rabbitmq
+spec:
+  serviceName: "rabbitmq-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      # nodeSelector:
+        # type: linux-node
+      containers:
+        - image: "rabbitmq:3.6.6-management"
+          name: rabbitmq
+          ports:
+            - containerPort: 4369
+              name: queue-epmd
+            - containerPort: 5672
+              name: queue-port
+            - containerPort: 15672
+              name: queue-api
+            - containerPort: 25672
+              name: queue-dist
+            - containerPort: 35197
+              name: queue-cli
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: "RABBITMQ_NODENAME"
+              value: "rabbit@$(MY_POD_IP)"
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+          volumeMounts:
+            - name: rabbitmq-data
+              mountPath: /var/lib/rabbitmq/mnesia
+          livenessProbe:
+            exec:
+              command:
+              - rabbitmqctl
+              - node_health_check
+            initialDelaySeconds: 30
+            timeoutSeconds: 15
+            #readinessProbe:
+            #            exec:
+            #              command:
+            #              - rabbitmqctl
+            #              - node_health_check
+            #            initialDelaySeconds: 30
+            #            timeoutSeconds: 15
+          lifecycle:    
+            postStart:
+              exec:
+                command:
+                - /bin/bash
+                - -c
+                - |
+                  until rabbitmqctl node_health_check; do
+                    sleep 5
+                    echo "Waiting for node to be healthy"
+                  done
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

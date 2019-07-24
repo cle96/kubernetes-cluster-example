@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-service
+  namespace: e-stack
+  labels:
+    app: rabbitmq
+spec:
+  ports:
+    - port: 4369
+      name: queue-epmd
+      protocol: TCP
+    - port: 5672
+      name: queue-port
+      protocol: TCP
+    - port: 15672
+      name: queue-api
+      protocol: TCP
+    - port: 25672
+      name: queue-dist
+      protocol: TCP
+    - port: 35197
+      name: queue-cli
+      protocol: TCP
+  selector:
+    app: rabbitmq
